@@ -1,19 +1,17 @@
-import { getAuth } from "@react-native-firebase/auth"
-import Authentication from "./src/auth"
-import Home from "./src/screens/home"
+import StackNavigator from "./src/layout/stack-navigator"
+import { NavigationContainer } from "@react-navigation/native"
+import { StatusBar } from "react-native"
+import { SafeAreaProvider } from "react-native-safe-area-context"
 
 const App = () => {
-  const auth = getAuth()
-  const user = auth.currentUser
-  console.log(user)
+
   return (
-    <>
-      {user ? (
-        <Home />
-      ) : (
-        <Authentication />
-      )}
-    </>
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <StatusBar hidden />
+        <StackNavigator />
+      </NavigationContainer>
+    </SafeAreaProvider>
   )
 }
 

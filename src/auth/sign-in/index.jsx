@@ -1,12 +1,17 @@
+import { getAuth } from "@react-native-firebase/auth";
 import { useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
 
-const SignIn = () => {
+const SignIn = ({ navigation }) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
-    const handleSubmit = () => {
-        console.log("Exists")
+    const auth = getAuth()
+
+    const handleSubmit = async () => {
+        console.log(email, password)
+        await auth.signInWithEmailAndPassword(email, password)
+        navigation.navigate({ name: "Home" })
     }
     return (
         <View style={styles.screen}>
@@ -17,6 +22,7 @@ const SignIn = () => {
                 <TouchableOpacity style={styles.buttonContainer} onPress={handleSubmit}>
                     <Text style={styles.button}>Login</Text>
                 </TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate("SignUp")} style={{ marginVertical: 4 }}><Text style={{ color: "black", textAlign: "center" }}>Create an account?</Text></TouchableOpacity>
             </View>
         </View>
     )

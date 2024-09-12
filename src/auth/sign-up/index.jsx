@@ -2,7 +2,7 @@ import { getAuth, onAuthStateChanged } from "@react-native-firebase/auth";
 import { useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
 
-const SignUp = () => {
+const SignUp = ({ navigation }) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [user, setUser] = useState(null);
@@ -45,6 +45,7 @@ const SignUp = () => {
                 <TouchableOpacity style={styles.buttonContainer} onPress={handleRegister}>
                     <Text style={styles.button}>Sign Up</Text>
                 </TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate("SignIn")} style={{ marginVertical: 4 }}><Text style={{ color: "black", textAlign: "center" }}>Already have an account?</Text></TouchableOpacity>
             </View>
         </View>
     )
