@@ -2,32 +2,29 @@ import { getAuth } from "@react-native-firebase/auth"
 import { Button, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
 import { firebase } from "@react-native-firebase/firestore"
 import { useEffect, useState } from "react"
+import ScreenWrapper from "../../components/screen-wrapper"
 
 const Home = ({ navigation }) => {
-    const [users, setUsers] = useState()
-    const [name, setName] = useState()
-    const [age, setAge] = useState()
+    const [users, setUsers] = useState([])
+    const [name, setName] = useState("")
+    const [age, setAge] = useState("")
     const auth = getAuth()
 
-    const getUsersData = async () => {
-        try {
-            const snapshot = await firebase.firestore().collection('Users').get();
+    // Set up real-time listener for Users collection
+    useEffect(() => {
+        const unsubscribe = firebase.firestore().collection('Users').onSnapshot(snapshot => {
             const usersData = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data(),
             }));
             setUsers(usersData);
-            console.log("This is the data", usersData);
-        } catch (error) {
+        }, error => {
             console.error("Error fetching users data:", error);
-        }
-    };
+        });
 
-
-    useEffect(() => {
-        getUsersData()
-    }, [])
-
+        // Clean up listener on component unmount
+        return () => unsubscribe();
+    }, []);
 
     const handleLogout = async () => {
         await auth.signOut()
@@ -40,18 +37,53 @@ const Home = ({ navigation }) => {
                 name: name,
                 age: age,
             });
+            setName(""); // Reset input fields
+            setAge("");
             console.log("Data successfully written!");
         } catch (error) {
             console.log("Error writing data:", error.message);
         }
     };
+
+    const handleUpdate = async (id) => {
+        try {
+            await firebase.firestore().collection("Users").doc(id).update({
+                name: "Updated Name",
+            });
+            console.log("Data successfully updated!");
+        } catch (error) {
+            console.log("Error updating data:", error.message);
+        }
+    }
+
+    const handleDelete = async (id) => {
+        try {
+            await firebase.firestore().collection("Users").doc(id).delete();
+            console.log("Data successfully deleted!");
+        } catch (error) {
+            console.log("Error deleting data:", error.message);
+        }
+    }
+
     return (
-        <View>
+        <ScreenWrapper>
             <Button title="Logout" onPress={handleLogout} />
             <Text style={styles.heading}>Users 👤</Text>
             <View style={styles.form}>
-                <TextInput style={styles.input} placeholder="Name" placeholderTextColor={"black"} onChangeText={text => setName(text)} value={name} />
-                <TextInput style={styles.input} placeholder="Age" placeholderTextColor={"black"} onChangeText={text => setAge(text)} value={age} />
+                <TextInput
+                    style={styles.input}
+                    placeholder="Name"
+                    placeholderTextColor={"black"}
+                    onChangeText={text => setName(text)}
+                    value={name}
+                />
+                <TextInput
+                    style={styles.input}
+                    placeholder="Age"
+                    placeholderTextColor={"black"}
+                    onChangeText={text => setAge(text)}
+                    value={age}
+                />
                 <TouchableOpacity style={styles.buttonContainer} onPress={handleSubmit}>
                     <Text style={styles.button}>Add User</Text>
                 </TouchableOpacity>
@@ -63,19 +95,16 @@ const Home = ({ navigation }) => {
                         <View style={styles.box}>
                             <Text style={styles.name}>{item.name}</Text>
                             <Text style={styles.age}>{item.age}</Text>
+                            <View style={{ flexDirection: "row" }}>
+                                <Button title="Update" onPress={() => handleUpdate(item.id)} />
+                                <Button title="Delete" onPress={() => handleDelete(item.id)} />
+                            </View>
                         </View>
                     }
                     keyExtractor={item => item.id}
                 />
             </View>
-            {/* {users.map((us, index) => {
-                return (
-                    <View style={{ height: 200, width: 200, backgroundColor: "black" }}>
-                        <Text style={{ color: "white", fontSize: 20 }}>{us.name}</Text>
-                    </View>
-                )
-            })} */}
-        </View>
+        </ScreenWrapper>
     )
 }
 
@@ -115,9 +144,11 @@ const styles = StyleSheet.create({
     },
     box: {
         height: 100,
-        width: 100,
-        backgroundColor: "black",
-        gap: 5
+        width: 150,
+        backgroundColor: "grey",
+        gap: 5,
+        margin: 10,
+        padding: 10
     },
     name: {
         fontSize: 20,
